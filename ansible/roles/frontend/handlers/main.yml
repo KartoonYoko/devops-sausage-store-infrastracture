@@ -1,0 +1,6 @@
+---
+# handlers file for frontend
+- name: Перечитываем конфигурацию systemd
+  systemd:
+    daemon_reload: yes
+  listen: "Daemon reload"

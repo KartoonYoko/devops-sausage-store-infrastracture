@@ -1,0 +1,54 @@
+---
+# tasks file for backend
+- name: Устанавливаем openjdk-17-jdk
+  apt:
+    name: openjdk-17-jdk
+    state: present
+    update_cache: yes
+
+- name: Добавим сервисного пользователя
+  user:
+    name: "{{BACKEND_USER}}"
+    create_home: yes
+    shell: /sbin/nologin
+
+- name: Install dependency packages for maven_artifact (Ubuntu/Debian)
+  apt:
+    pkg:
+    - python3-pip
+    - python3-lxml
+    state: present
+    update_cache: yes
+
+- name: Используем модуль maven_artifact, он скачает пакет приложения с Nexus
+  maven_artifact:
+    dest: "/home/jarservice/sausage-store.jar"
+    repository_url: "{{NEXUS_URL}}"
+    group_id: "{{NEXUS_GROUP_ID}}"
+    artifact_id: "{{NEXUS_ARTIFACT_ID}}"
+    version: "{{ARTIFACT_BACKEND_VERSION}}"
+    username: "{{NEXUS_USER}}"
+    password: "{{NEXUS_PASS}}"
+
+- name: Меняем разрешения для доступа к артефакту
+  ansible.builtin.file:
+    path: /home/jarservice/sausage-store.jar
+    owner: "{{BACKEND_USER}}"
+    group: "{{BACKEND_USER}}"
+
+- name: Шаблонизация конфига управляет настройками приложения c помощью переменных
+  template:
+    src: sausage-store-backend.service.j2
+    dest: /etc/systemd/system/sausage-store-backend.service
+  notify:
+    - "Daemon reload"
+
+- name: Создаём директорию /opt/log для логов
+  ansible.builtin.file:
+    path: /opt/log
+    state: directory
+
+- name: всё готово - запускаем!
+  service:
+    name: sausage-store-backend
+    state: started
