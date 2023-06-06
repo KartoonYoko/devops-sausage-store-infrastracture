@@ -1,0 +1,91 @@
+---
+# tasks file for frontend
+- name: Install the gpg key for nodejs LTS
+  apt_key:
+    url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    state: present
+
+- name: Install the nodejs LTS repos
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_{{ NODEJS_VERSION }}.x {{ ansible_distribution_release }} main"
+    state: present
+    update_cache: yes
+
+- name: Устанавливаем nodejs
+  become: yes
+  apt:
+    name: nodejs
+    state: present
+
+- name: устанавливаем http-server
+  become: true
+  npm:
+    global: true
+    name: http-server
+
+### добавление пользователя с привилегированными правами для запуска
+### htt-server на 80 порту
+- name: Убедимся в существовании wheel группы
+  group:
+    name: wheel
+    state: present
+
+- name: Wheel группа с привилегированными правами без пароля
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Добавим сервисного пользователя
+  user:
+    name: "{{ FRONTEND_USER }}"
+    create_home: no
+    shell: /sbin/nologin
+    groups: wheel
+    append: true
+##############################################
+
+- name: Создаём директорию /var/www-data
+  ansible.builtin.file:
+    path: /var/www-data
+    owner: "{{ FRONTEND_USER }}"
+    group: "{{ FRONTEND_USER }}"
+    state: directory
+
+- name: Загружаем артефакт c нексуса
+  ansible.builtin.get_url:
+    url: https://nexus.k8s.praktikum-services.tech/repository/sausage-store-vtulkin-vladislav-frontend/sausage-store-front/sausage-store/{{ARTIFACT_VERSION}}/sausage-store-{{ARTIFACT_VERSION}}.tar.gz
+    dest: /var/www-data/sausage-store.tar.gz
+    username: "{{NEXUS_USER}}"
+    password: "{{NEXUS_PASS}}"
+
+- name: Меняем разрешения артефакта
+  ansible.builtin.file:
+    path: /var/www-data/sausage-store.tar.gz
+    owner: "{{FRONTEND_USER}}"
+    group: "{{FRONTEND_USER}}"
+
+- name: Распаковка артефакта
+  ansible.builtin.unarchive:
+    src: /var/www-data/sausage-store.tar.gz
+    dest: /var/www-data
+    remote_src: yes
+
+- name: Создание systemd-юнита для сервиса
+  template:
+    src: sausage-store-frontend.service.j2
+    dest: /etc/systemd/system/sausage-store-frontend.service
+  notify:
+    - "Daemon reload"
+
+- name: Создаём директорию /opt/log для логов
+  ansible.builtin.file:
+    path: /opt/log
+    state: directory
+
+- name: Запуск фронтенда
+  service:
+    name: sausage-store-frontend
+    state: started

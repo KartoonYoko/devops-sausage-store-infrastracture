@@ -1,0 +1,10 @@
+all: # Все серверы в нашем inventory, all - обязателен
+  children:
+    backend: # Группа хостов с именем backend
+      hosts:
+        10.128.0.140:
+        # chapter5-practice2-std-016-032.praktikum-services.tech:
+    frontend:
+      hosts:
+        10.128.0.140:
+        # chapter5-practice2-std-016-032.praktikum-services.tech:

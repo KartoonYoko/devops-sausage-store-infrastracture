@@ -1,0 +1,21 @@
+[Unit]
+Description=Sasuage Store application server
+
+[Service]
+User={{BACKEND_USER}}
+Environment=REPORT_PATH=/var/www-data/htdocs
+Environment=LOG_PATH=/logs
+StandardOutput=file:/opt/log/sausage-store-backend.log
+StandardError=file:/opt/log/sausage-store-backend-error.log
+Restart=always
+ExecStart=/usr/bin/java \
+-Dmyserver.basePath='/home/jarservice/' \
+-Dmyserver.bindAddr='127.0.0.1' \
+-Dmyserver.bindPort='8080' \
+-Dmyserver.hostName='Sausage-store' \
+-jar '/home/jarservice/sausage-store.jar'
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+Alias=sasuage-store-backend.service
