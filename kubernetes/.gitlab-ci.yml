@@ -1,0 +1,20 @@
+stages:
+  - deploy
+
+deploy-kubernetes:
+  stage: deploy
+  before_script:
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+    - cp kubectl /usr/local/bin/
+    - chmod +x /usr/local/bin/kubectl 
+  script:
+    - mkdir ~/.kube
+    - touch ~/.kube/config
+    - echo "$KUBECONFIG" > ~/.kube/config
+    - kubectl apply -f kubernetes/backend
+    - kubectl apply -f kubernetes/backend-report
+    - kubectl apply -f kubernetes/frontend
+    - rm -f ~/.kube/config
+  environment:
+    name: Kubernetes
+    url: https://vtulkin-vladislav-16.k8s.praktikum-services.tech
