@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-report
+  labels:
+    app: backend-report
+spec:
+  replicas: {{ .Values.backendReport.replicas }}
+  revisionHistoryLimit: 15
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: backend-report
+  template:
+    metadata:
+      labels:
+        app: backend-report
+    spec:
+      containers:
+        - name: backend-report
+          image: "{{ .Values.backendReport.image }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: IfNotPresent
+          resources: 
+            requests:
+              memory: {{ .Values.backendReport.resources.requests.memory }} 
+              cpu: {{ .Values.backendReport.resources.requests.cpu }} 
+            limits:
+              memory: {{ .Values.backendReport.resources.limits.memory }} 
+              cpu: {{ .Values.backendReport.resources.limits.cpu }} 
+          env:
+            - name: DB
+              valueFrom:
+                secretKeyRef:
+                  name: backend-report
+                  key: mongo_db
+            - name: PORT
+              value: "8080"
+          ports:
+            - name: backend-report
+              containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 30
+            timeoutSeconds: 1
+            failureThreshold: 6
+      imagePullSecrets:
+        - name: docker-config-secret
