@@ -1,0 +1,12 @@
+backendReport:
+  image: gitlab.praktikum-services.ru:5050/std-016-032/sausage-store/sausage-backend-report
+  replicas: 1
+  dockerconfigjson: ewogICAgICAgICJhdXRocyI6IHsKICAgICAgICAgICAgICAgICJnaXRsYWIucHJha3Rpa3VtLXNlcnZpY2VzLnJ1OjUwNTAiOiB7CiAgICAgICAgICAgICAgICAgICAgICAgICJhdXRoIjogImMzUmtMVEF4Tmkwd016STZUM0V6VWpFMU5XZz0iCiAgICAgICAgICAgICAgICB9CiAgICAgICAgfQp9Cg==
+  mongodb: bW9uZ29kYjovL3N0ZC0wMTYtMDMyOlRlc3R1c3IxMjM0QHJjMWEtNWlmNDBjZWYzNHZzbXV0OS5tZGIueWFuZGV4Y2xvdWQubmV0OjI3MDE4L3N0ZC0wMTYtMDMyP3Rscz10cnVlJnRsc0NhRmlsZT1ZYW5kZXhJbnRlcm5hbFJvb3RDQS5jcnQ=
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: 0.1
+    limits:
+      memory: "1025Mi"
+      cpu: 0.2 
